@@ -2,7 +2,10 @@ import math
 import pandas as pd
 
 
-# Minimum polynomial degrees (6 decimal places)
+# Minimum degrees for which the Lagrange bound is below 0.5e-6.
+# This limits the absolute error; it does not guarantee that both values
+# round to the same 6 decimal places.
+# sin has no even-degree terms, so T_6 = T_5 and T_8 = T_7.
 
 degrees = {
     "sin": {
@@ -72,7 +75,9 @@ def lagrange_bound(func, x, n):
 
     if func == "sin":
         M = 1
-        return M * x**(n+1) / math.factorial(n+1)
+        # For odd n, T_n = T_(n+1), so the remainder of T_(n+1) gives a tighter bound.
+        m = n + 1 if n % 2 == 1 else n
+        return M * x**(m+1) / math.factorial(m+1)
 
     elif func == "exp":
         M = math.exp(x)
@@ -103,7 +108,7 @@ for func in ["sin","exp","ln"]:
         ratio = bound/actual_error
 
         rows.append({
-            "Function":func,
+            "Function":"ln(1+x)" if func == "ln" else func,
             "x":x,
             "Degree n":n,
             "True Value":true_value,
